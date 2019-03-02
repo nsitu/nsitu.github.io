@@ -1,7 +1,5 @@
 @charset "UTF-8";
 
-@charset "UTF-8";
-
 /* http://meyerweb.com/eric/tools/css/reset/
    v2.0 | 20110126
    License: none (public domain)
@@ -78,6 +76,10 @@ table {
   font-style: italic;
   letter-spacing: 5px;
   color: #fff;
+}
+
+#hero form{
+	width: 50%;
 }
 
 
@@ -183,7 +185,7 @@ table {
   }
 
   #hero h2 {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     font-family: 'Montserrat', sans-serif;
     text-transform: uppercase;
     font-weight: 500;
@@ -221,88 +223,39 @@ table {
   }
 
 
+/*---*/
 
-body ul li {
-  list-style-type: none;
+.select-style {
+border: none;
+width: 100%;
+margin-right: 30%;
+padding: 5px;
+border-radius: 3px;
+overflow: hidden;
+
+background: #000 url("../images/down-arrow-white.svg") no-repeat 96% 50%;
+background-size: 20px 10px;
+
 }
+.select-style option {
+	background: transparent;
+}
+.select-style select {
 
-.nav {
-  background-color: #000;
   font-family: 'Montserrat', sans-serif;
-  width: 100%;
-  position: fixed;
-  z-index: 10;
-  clear: both;
+	font-weight: 500;
+	font-style: italic;
+padding: 5px 8px;
+color: #fff;
+border: none;
+box-shadow: none;
+background-color: rgba(0,0,0,0.5);
+background-image: none;
+width: 100%;
+-webkit-appearance: none;
+border-radius: 0px;
 }
 
-ul#menu {
-  display: none;
-}
-ul#menu li a {
-  width: 100%;
-  display: block;
-  background-color: #000;
-  color: #fff;
-  font-size: 1em;
-  padding: 1.5em 1.6em;
-  transition: background 0.2s;
-  text-decoration: none;
-}
-ul#menu a:hover {
-  background-color: #303030;
-}
-
-@media screen and (min-width: 1280px) {
-  .hamburger-container {
-    display: none;
-  }
-
-  .nav ul#menu {
-    display: inline;
-  }
-  .nav ul#menu li {
-    display: inline-block;
-    margin-right: -5px;
-  }
-}
-ul.hamburger li {
-  height: 5px;
-  background: #fff;
-  content: "";
-  position: relative;
-  transition: 0.25s ease-in-out;
-}
-
-.hidden {
-  opacity: 0;
-}
-
-.rot45deg {
-  transform: rotate(45deg);
-  top: 10px !important;
-}
-
-.rot-45deg {
-  transform: rotate(-45deg);
-}
-
-ul.hamburger {
-  display: block;
-}
-ul.hamburger li:nth-child(1) {
-  top: 0;
-}
-ul.hamburger li:nth-child(2) {
-  top: 5px;
-}
-ul.hamburger li:nth-child(3) {
-  top: 10px;
-}
-
-.hamburger-container {
-  width: 38px;
-  margin: 1.2em 1.6em;
-  height: 30px;
-  cursor: pointer;
-  float: right;
+.select-style select:focus {
+outline: none;
 }
