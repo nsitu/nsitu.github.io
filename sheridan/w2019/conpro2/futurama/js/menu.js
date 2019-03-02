@@ -1,7 +1,15 @@
 function populateMenu(){
   var links = {
-      "Student Name": "https://google.com",
-      "Another Student": "https://facebook.com"
+      "Student 01": "https://google.com",
+      "Student 02": "https://facebook.com",
+      "Student 03": "https://google.com",
+      "Student 04": "https://facebook.com",
+      "Student 05": "https://google.com",
+      "Student 06": "https://facebook.com",
+      "Student 07": "https://google.com",
+      "Student 08": "https://facebook.com",
+      "Student 09": "https://google.com",
+      "Student 10": "https://facebook.com"
   };
   for (var name in links) {
       if (links.hasOwnProperty(name)) {
