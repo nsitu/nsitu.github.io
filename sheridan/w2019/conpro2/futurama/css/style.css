@@ -1,0 +1,307 @@
+@charset "UTF-8";
+
+@charset "UTF-8";
+
+/* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+
+#wrapper {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+#hero {
+  order: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  width: 60vw;
+  height: 100vh;
+  padding: 3rem;
+  box-sizing: border-box;
+  z-index: 0;
+}
+
+#hero h2 {
+  font-size: 0.9rem;
+  font-family: 'Montserrat', sans-serif;
+  text-transform: uppercase;
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: 5px;
+  color: #fff;
+}
+
+
+#info {
+  order: 0;
+  display: flex;
+  flex-direction: column;
+  width: 40vw;
+  padding: 3rem;
+  box-sizing: border-box;
+  overflow: scroll;
+}
+
+#info h1 {
+  color: #333;
+  font-family: 'Montserrat', sans-serif;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 3.5rem;
+  line-height: 0.9;
+  margin: 3rem 0 3rem 0;
+}
+
+#info #logo {
+  height: auto;
+  padding: 0 0 0.5rem 0;
+  border-bottom: 12px solid #333;
+  font-size: 0.7rem;
+  font-family: 'Georgia', serif;
+  text-transform: uppercase;
+  font-style: italic;
+  font-weight: bold;
+  letter-spacing: 4px;
+  color: #333;
+  text-decoration: none;
+}
+
+#info #logo:hover {
+  background-color: #ff0;
+}
+
+#info #design-statement p {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+#info #design-statement p + p {
+  margin-top: 1rem;
+}
+
+#info #design-statement p a {
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 3px solid #333;
+}
+
+#info #design-statement p a:hover {
+  background-color: #ff0;
+}
+
+
+/* width */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #333;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+@media only screen and (max-width: 900px),
+  only screen and (orientation: portrait) {
+
+  #wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #hero {
+    order: 0;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    width: 100%;
+    height: 1000px;
+    padding: 2rem;
+    box-sizing: border-box;
+    z-index: 0;
+  }
+
+  #hero h2 {
+    font-size: 0.7rem;
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+    font-weight: 500;
+    font-style: italic;
+    letter-spacing: 3px;
+    color: #fff;
+  }
+
+  #info {
+    order: 1;
+    display: flex;
+    width: 100%;
+    height: auto;
+    flex-direction: column;
+    padding: 3rem;
+    box-sizing: border-box;
+    overflow: visible;
+  }
+
+}
+
+@media only screen and (-webkit-min-device-pixel-ratio: 1.3) and (orientation: portrait),
+	only screen and (-o-min-device-pixel-ratio: 13/10) and (orientation: portrait),
+	only screen and (min-resolution: 120dpi) and (orientation: portrait) {
+
+    #info #design-statement p {
+      font-size: 1.25rem;
+    }
+
+    #info #logo {
+      font-size: 1rem;
+    }
+
+
+  }
+
+
+
+body ul li {
+  list-style-type: none;
+}
+
+.nav {
+  background-color: #000;
+  width: 100%;
+  position: fixed;
+  z-index: 10;
+  clear: both;
+}
+
+ul#menu {
+  display: none;
+}
+ul#menu li a {
+  width: 100%;
+  display: block;
+  background-color: #000;
+  color: #fff;
+  font-size: 1em;
+  padding: 1.5em 1.6em;
+  transition: background 0.2s;
+  text-decoration: none;
+}
+ul#menu a:hover {
+  background-color: #303030;
+}
+
+@media screen and (min-width: 1280px) {
+  .hamburger-container {
+    display: none;
+  }
+
+  .nav ul#menu {
+    display: inline;
+  }
+  .nav ul#menu li {
+    display: inline-block;
+    margin-right: -5px;
+  }
+}
+ul.hamburger li {
+  height: 5px;
+  background: #fff;
+  content: "";
+  position: relative;
+  transition: 0.25s ease-in-out;
+}
+
+.hidden {
+  opacity: 0;
+}
+
+.rot45deg {
+  transform: rotate(45deg);
+  top: 10px !important;
+}
+
+.rot-45deg {
+  transform: rotate(-45deg);
+}
+
+ul.hamburger {
+  display: block;
+}
+ul.hamburger li:nth-child(1) {
+  top: 0;
+}
+ul.hamburger li:nth-child(2) {
+  top: 5px;
+}
+ul.hamburger li:nth-child(3) {
+  top: 10px;
+}
+
+.hamburger-container {
+  width: 38px;
+  margin: 1.2em 1.6em;
+  height: 30px;
+  cursor: pointer;
+  float: right;
+}
