@@ -120,7 +120,7 @@ table {
 
 
 #info #design-statement p {
-  font-family: 'Montserrat', serif;
+	font-family: 'Montserrat', sans-serif;
   font-size: 1rem;
   line-height: 1.8;
 }
@@ -199,6 +199,13 @@ table {
 
 @media only screen and (max-width: 900px),
   only screen and (orientation: portrait) {
+
+.select-style {
+	padding: 15px;
+}
+#hero form{
+	width: 100%;
+}
 
   #wrapper {
     display: flex;
