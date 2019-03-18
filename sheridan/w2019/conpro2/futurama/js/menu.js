@@ -1,5 +1,7 @@
 function populateMenu(){
   var links = {
+    "de Bernardo, Tim":"http://firebird.sheridanc.on.ca/~ixd533/ConProWebCat2019/",
+    "Cipparrone, Mya":"http://ixd518.firebird.sheridanc.on.ca/Artifact-Lixier/",
 "Betts, Emily": "http://firebird.sheridanc.on.ca/~ixd492/ConProWebCat2019/",
 "Finch, Marlee": "http://ixd589.firebird.sheridanc.on.ca/ConProWebCat/",
 "Fulkerson, Jessica": "http://ixd590.firebird.sheridanc.on.ca/ConProWebCat2019/",
