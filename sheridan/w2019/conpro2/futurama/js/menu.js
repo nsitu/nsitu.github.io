@@ -1,6 +1,7 @@
 function populateMenu(){
   var links = {
     "Emily Betts": "http://firebird.sheridanc.on.ca/~ixd492/ConProWebCat2019/",
+    "Alex Borthwick":"http://ixd575.firebird.sheridanc.on.ca/Conpro/",
     "Mya Cipparrone":"http://ixd518.firebird.sheridanc.on.ca/Artifact-Lixier/",
     "Rachael Concessio":"http://ixd495.firebird.sheridanc.on.ca/CONPRO/index%20(1).html",
     "Nghia Dang":"http://ixd519.firebird.sheridanc.on.ca/ConProWebCat2019/index.html",
