@@ -29,6 +29,7 @@ function populateMenu(){
     "Nenyi (Nae) Keborku":"https://ixd579.firebird.sheridanc.on.ca/LUCIDREAM/",
     "Nathan Knappett":"http://ixd559.firebird.sheridanc.on.ca/Nathan_Knappett_Catalogue_Project02/index.html",
     "Chris Kovacs":"https://firebird.sheridanc.on.ca/~ixd539/concept_prj2/",
+    "Alex Legere":"http://ixd603.firebird.sheridanc.on.ca/Catalogue/",
     "Yichen Li":"http://ixd563.firebird.sheridanc.on.ca/link/",
     "Peilan Liao":"http://ixd505.firebird.sheridanc.on.ca/ConProWebCat2019/",
     "Michelle Lillo Meza": "http://ixd564.firebird.sheridanc.on.ca/ConPro_WebCatalogue/",
