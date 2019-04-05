@@ -1,6 +1,7 @@
 function populateMenu(){
   var links = {
     "Sharvari Amin":"http://ixd516.firebird.sheridanc.on.ca/Prj2%20-%20Catalouge%20Card/",
+    "Shaquille Baker":"http://ixd598.firebird.sheridanc.on.ca/Shaquille_ConProWebCat2019/index.html",
     "Emily Betts": "http://firebird.sheridanc.on.ca/~ixd492/ConProWebCat2019/",
     "Jasmine Bhogal":"http://firebird.sheridanc.on.ca/~ixd529/jasmine_bhogal_futurama/index.html",
     "Alex Borthwick":"http://ixd575.firebird.sheridanc.on.ca/Conpro/",
@@ -11,6 +12,7 @@ function populateMenu(){
     "Rachael Concessio":"http://ixd495.firebird.sheridanc.on.ca/CONPRO/index%20(1).html",
     "Nghia Dang":"http://ixd519.firebird.sheridanc.on.ca/ConProWebCat2019/index.html",
     "Tim de Bernardo":"http://firebird.sheridanc.on.ca/~ixd533/ConProWebCat2019/",
+    "Tyler DeMeo":"http://ixd534.firebird.sheridanc.on.ca/conpro/",
     "Andrew Dumais":"http://ixd535.firebird.sheridanc.on.ca/Dumais_Andrew_ConProWebCat2019/",
     "Michael Brzuchalski":"https://ixd493.firebird.sheridanc.on.ca/ConProProj2/",
     "Rick Erickson":"http://ixd498.firebird.sheridanc.on.ca/ConProProject2/",
