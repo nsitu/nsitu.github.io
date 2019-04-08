@@ -62,7 +62,7 @@ function populateMenu(){
     "Wu Siyan":"http://ixd574.firebird.sheridanc.on.ca",
     "Xinyue Tang": "http://firebird.sheridanc.on.ca/~ixd548/ConProWebCat2019/",
     "Mary-Ann Trieu": "https://ixd571.firebird.sheridanc.on.ca/ConPro2/mindsight-bot_catalogue/ConProWebCat2019/",
-    "Wilson Truong":"http://ixd572.firebird.sheridanc.on.ca/galleryconpro2/",
+    "Wilson Truong":"http://ixd572.firebird.sheridanc.on.ca/galleryconpro2v2/",
     "Amanda Tully":"http://firebird.sheridanc.on.ca/~ixd610/ConProWebCat2019/",
     "Siyan Wu":"http://ixd574.firebird.sheridanc.on.ca/catalogue/",
     "Zhendong Xiao": "http://ixd549.firebird.sheridanc.on.ca/process2/",
