@@ -1,1 +1,1 @@
-This repository serves as a basic file hosting platform for Harold Sikkema
+This repository serves as a static hosting/publishing space for Harold Sikkema
