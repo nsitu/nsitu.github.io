@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <title>COVID-19 Case Doubling Time</title>
+   <meta property="og:image" content="https://nsitu.ca/covid/canada.jpg" />
+   <meta property="og:type" content="website" />
+   <meta property="og:url" content="https://nsitu.ca/covid/" />
+   <meta property="og:title" content="COVID-19 Case Doubling Time" />
+   <meta property="og:description" content="Created by Harold Sikkema. Source code on Github. Novel Coronavirus (COVID-19) Cases, provided by JHU CSSE. JSON Timeseries by pomber. Charts made with Chart.js" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+  <script type="text/javascript">
+    var theCountry;
+    var theData = {};
+    var doublingLabel = 'Case doubling time (5-day average)';
+    var casesLabel = 'Confirmed Cases';
+
+    if(window.location.hash) {
+      //console.log( data[window.location.hash] );
+      theCountry =  decodeURIComponent(window.location.hash.substring(1));
+    } else {
+      // Fragment doesn't exist
+      window.location.href = "#Canada";
+       window.location.reload(true);
+    }
+
+    // Thanks to https://github.com/pomber/covid19
+    fetch("https://pomber.github.io/covid19/timeseries.json")
+    .then(response => response.json())
+    .then(data => render( data ) );
+
+    // Activate the selectlist navigation
+    function loadCountry(){
+      var selectBox = document.getElementById("theCountries");
+      var theValue = selectBox.options[selectBox.selectedIndex].value;
+      window.location.href = '#' + theValue;
+      window.location.reload(true);
+   }
+
+    function render( data ){
+      // put the countries in alphabetical order
+      Object.keys(data).sort().forEach(function(key) {
+        theData[key] = data[key];
+      });
+      // Add countries to the drop down navigation
+      Object.keys(theData).forEach(function (key) {
+          var selectedState = '';
+          if (theCountry == key){ selectedState = " selected"; }
+          document.getElementById("theCountries").innerHTML+=
+            '<option value="'+key+'" '+selectedState+'>'+key+'</option>';
+      });
+
+      // arrays to be populated with chartable data
+      let theLabels = [];
+      let theConfirmed = [];
+      let doublingTime = [];
+
+      let i = 1; // keep track of day #
+      let recent = [0,0,0,0,0];  // 5 most recent case counts
+      let chartEnabled = false; // we will enable this later
+
+       // iterate through data
+      theData[theCountry].forEach(({ date, confirmed, recovered, deaths }) => {
+
+         // Note: I have not yet used the "recovered" or "deaths" data
+
+         // only start charting when we have a 5-day history
+          if ( !recent.includes(0) ) { chartEnabled = true;}
+
+          // calculate doubling time over recent days
+          var X= [i, i+1, i+2, i+3, i+4];
+          var Y= recent;
+          var days = Math.log(2) / getSlope(X,Y);
+
+          // skip if all recent values are equal
+          // reason: doubling time is infinite, resulting in outliers
+          if ( recent.every( (v, i, a) => v === a[0] ) ){
+              days = null;
+          }
+
+          // add data to the chart arrays
+          if (chartEnabled){
+              theLabels.push(date);
+              theConfirmed.push(confirmed);
+              doublingTime.push( days );
+          }
+
+          // update the array of recent case counts.
+          // everything "slides" over one position.
+          recent.shift();
+          recent.push( Math.log(confirmed) );
+
+          i++; // next day
+
+      });
+
+      /* Build the chart */
+      // See also: https://www.chartjs.org/docs/latest/
+      var ctx = document.getElementById('myChart').getContext('2d');
+      var myChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+              labels: theLabels,
+              datasets: [{
+                  label: doublingLabel,
+                  lineTension: 0,
+                  data: doublingTime,
+                  borderColor: 'blue',
+                  backgroundColor: 'transparent',
+                  showLine: true,
+                  yAxisID: 'second-y-axis'
+              },
+              {
+                  label: casesLabel,
+                  lineTension: 0,
+                  data: theConfirmed,
+                  borderColor: 'red',
+                  backgroundColor: 'transparent',
+                  showLine: true,
+                  yAxisID: 'first-y-axis',
+                  hidden: false
+              }
+              ]
+          },
+          options: {
+              scales: {
+                  yAxes: [{
+                      id: 'first-y-axis',
+                      type: 'logarithmic',
+                      position: 'right',
+                      ticks: {
+                          fontColor: 'red',
+                          callback: function(tick, index, ticks) {
+                            return tick.toLocaleString();
+                          }
+                      },
+                      scaleLabel: {
+                          display: true,
+                          fontColor: 'red',
+                          labelString: casesLabel
+                      }
+                  },
+                  {
+                      id: 'second-y-axis',
+                      type: 'linear',
+                      position: 'left',
+                      ticks: {
+                          fontColor: 'blue'
+                      },
+                      scaleLabel: {
+                          display: true,
+                          fontColor: 'blue',
+                          labelString: doublingLabel
+                      }
+                  }]
+              }
+          }
+      });
+    }
+
+    // getSlope() calculates the slope for our log trendline
+    // It's similar to Excel where you can send a range to the slope() function
+    // See also: https://stackoverflow.com/questions/43109305/calculate-slope-and-intercept-value-for-logarithmic-trendline-as-excel
+    // would love to get someone to review/verify the math here.
+    function getSlope(X, Y){
+      var Slope;
+      var Intercept;
+      var SX = 0, SY = 0, SXX = 0, SXY = 0, SYY = 0;
+      var SumProduct = 0;
+      var N = X.length;
+      for (var i = 0; i < N; i++) {
+         SX = SX + X[i];
+         SY = SY + Y[i];
+         SXY = SXY + X[i] * Y[i];
+         SXX = SXX + X[i] * X[i];
+         SYY = SYY + Y[i] * Y[i];
+      }
+      Slope = ((N * SXY) - (SX * SY)) / ((N * SXX) - (SX * SX));
+      Intercept = (SY - (Slope * SX)) / N;
+      return Slope;
+    }
+  </script>
+</head>
+<body>
+<div id="menu" style="text-align: center; padding: 10px;">
+  <select id="theCountries" onchange="loadCountry();">
+  </select>
+</div>
+<canvas id="myChart" width="400" height="150"></canvas>
+<footer style="color: #666; font-size: 0.8em; font-family: sans-serif; text-align: center; padding: 20px;">Created by <a href="https://nsitu.ca">Harold Sikkema</a>. Source code on <a href="https://github.com/nsitu/covid-case-doubling-time">Github</a>. Novel Coronavirus (COVID-19) Cases, provided by <a href="https://systems.jhu.edu/research/public-health/ncov/">JHU CSSE</a>. JSON Timeseries by <a href="https://github.com/pomber/covid19">pomber</a>. Charts made with <a href="https://www.chartjs.org/">Chart.js</a></footer>
+</body>
+</html>
