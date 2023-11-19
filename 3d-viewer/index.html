@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tree</title>
+  <!-- Import the component -->
+
+  <script src="html2canvas.min.js"> </script>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <script nomodule src="https://unpkg.com/@google/model-viewer/dist/model-viewer-legacy.js"></script>
+  <style>
+  body {
+    margin: 0px;
+  }
+  #treeModel #default-ar-button{
+    width: 10vw;
+    height: 10vw;
+    background: #ffeedd;
+  }
+  model-viewer{
+    width: 100vw; height: 90vh;
+  }
+
+  </style>
+</head>
+
+
+
+
+<body id="treeModel">
+  <!-- Use it like any other HTML element -->
+    <model-viewer  id="capture" src="ptree.glb" ar  ar-modes="webxr scene-viewer quick-look" ar-scale="auto"  alt="Plasticene Tree" auto-rotate camera-controls></model-viewer>
+
+
+<script>/*
+function doCapture(){
+  html2canvas(document.querySelector("#webgl-canvas")).then(canvas => {
+      document.body.appendChild(canvas)
+  });
+}*/
+function downloadImage(el){
+  var theCanvas = document.getElementById("capture");
+  var theImage = theCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+  el.href= theImage;
+}
+
+ /*
+window.location.href=image; // it will save locally
+
+
+var uri = 'data:application/csv;charset=UTF-8,' + encodeURIComponent(csv);
+var link = document.createElement('a');
+link.setAttribute("download", "extract.csv");
+link.setAttribute("href", uri);
+document.body.appendChild(link);
+link.click();
+body.removeChild(body.lastChild);*/
+
+
+</script>
+<a download="image.png" href="" onclick="downloadImage(this)">Capture</a>
+</body>
+</html>
