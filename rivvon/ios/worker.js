@@ -1,15 +1,14 @@
-importScripts(); // empty but allows future use
+// worker.js (ESM format, no importScripts)
 
 onmessage = async ({ data: { track } }) => {
   const vtg = new VideoTrackGenerator();
   const processor = new MediaStreamTrackProcessor({ track });
   const { readable } = processor;
 
-  // simple passthrough transform (replace with e.g. sepia for testing)
   const transformer = new TransformStream({
     async transform(videoFrame, controller) {
-      // optionally modify the frame here
-      controller.enqueue(videoFrame); // no-op pass-through
+      // no-op passthrough (could apply effects here)
+      controller.enqueue(videoFrame);
     }
   });
 
