@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Worker-Based WebCodecs Test</title>
+  <style>
+    video {
+      width: 100vw;
+      height: auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <video autoplay playsinline muted></video>
+  <script type="module">
+    const videoEl = document.querySelector('video');
+
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const [track] = stream.getVideoTracks();
+
+    const worker = new Worker('worker.js', { type: 'module' });
+    worker.postMessage({ track }, [track]);
+
+    const { data } = await new Promise(resolve => {
+      worker.onmessage = resolve;
+    });
+
+    const processedTrack = data.track;
+    const outputStream = new MediaStream([processedTrack]);
+    videoEl.srcObject = outputStream;
+  </script>
+</body>
+</html>
