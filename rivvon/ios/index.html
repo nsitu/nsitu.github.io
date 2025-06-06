@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Worker-Based WebCodecs Test</title>
+  <title>Worker-Based WebCodecs Test (with Logging)</title>
   <style>
     video {
       width: 100vw;
@@ -16,19 +16,27 @@
   <script type="module">
     const videoEl = document.querySelector('video');
 
+    console.log('[Main] Requesting webcam stream...');
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     const [track] = stream.getVideoTracks();
 
+    console.log('[Main] Got video track:', track);
     const worker = new Worker('worker.js', { type: 'module' });
+
+    worker.onmessage = (e) => {
+      console.log('[Main] Received processed track from worker:', e.data);
+      const processedTrack = e.data.track;
+      const outputStream = new MediaStream([processedTrack]);
+      videoEl.srcObject = outputStream;
+      console.log('[Main] Attached output stream to video element');
+    };
+
+    worker.onerror = (e) => {
+      console.error('[Main] Worker error:', e);
+    };
+
+    console.log('[Main] Sending track to worker...');
     worker.postMessage({ track }, [track]);
-
-    const { data } = await new Promise(resolve => {
-      worker.onmessage = resolve;
-    });
-
-    const processedTrack = data.track;
-    const outputStream = new MediaStream([processedTrack]);
-    videoEl.srcObject = outputStream;
   </script>
 </body>
 </html>
