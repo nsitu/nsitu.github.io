@@ -3,32 +3,46 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Touch-Drawn Slit-Scan Ribbon</title>
+  <title>Animated Fluttering Slit-Scan Ribbon</title>
   <style>
     html,
     body {
       margin: 0;
       overflow: hidden;
       touch-action: none;
-
     }
 
-    /* hide scrollbars */
     body {
       overscroll-behavior: contain;
     }
 
-
-    canvas#slitCanvas {
+    #slitCanvas {
       display: none;
     }
 
-    canvas#drawCanvas {
+    #drawCanvas {
       position: absolute;
       top: 0;
       left: 0;
       z-index: 1;
-      pointer-events: auto;
+      pointer-events: none;
+      /* will enable during drawing mode */
+    }
+
+    #drawToggleBtn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 2;
+      padding: 0.7em 1.3em;
+      border-radius: 1em;
+      font-size: 1.1em;
+      background: #333;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      opacity: 0.92;
+      user-select: none;
     }
   </style>
   <script type="importmap">
@@ -42,24 +56,12 @@
 </head>
 
 <body>
+  <button id="drawToggleBtn">Draw Ribbon</button>
   <canvas id="slitCanvas"></canvas>
   <canvas id="drawCanvas"></canvas>
-
-  <button
-    id="drawToggleBtn"
-    style="
-    position:absolute;top:10px;left:10px;z-index:2;
-    padding:0.7em 1.3em;border-radius:1em;font-size:1.1em;
-    background:#333;color:#fff;border:none;cursor:pointer;opacity:0.9;"
-  >
-    Draw Ribbon
-  </button>
-
-
   <script type="module">
 
-
-    // polyfill via https://jan-ivar.github.io/polyfills/mediastreamtrackprocessor.js
+    // Polyfill for MediaStreamTrackProcessor (from Jan-Ivar)
     if (!self.MediaStreamTrackProcessor) {
       console.log("Polyfilling MediaStreamTrackProcessor");
       self.MediaStreamTrackProcessor = class MediaStreamTrackProcessor {
@@ -92,10 +94,12 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+    // --- Canvas & 3D setup ---
     const slitCanvas = document.getElementById('slitCanvas');
     const slitCtx = slitCanvas.getContext('2d');
     const drawCanvas = document.getElementById('drawCanvas');
     const drawCtx = drawCanvas.getContext('2d');
+
 
 
 
@@ -110,11 +114,33 @@
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
 
+    // --- UI toggle for drawing mode ---
+    const drawToggleBtn = document.getElementById('drawToggleBtn');
+    let isDrawingMode = false;
 
+    function updateToggleBtn() {
+      if (isDrawingMode) {
+        drawToggleBtn.textContent = "Done Drawing";
+        drawToggleBtn.style.background = "#248f24";
+      } else {
+        drawToggleBtn.textContent = "Draw Ribbon";
+        drawToggleBtn.style.background = "#333";
+      }
+    }
 
+    drawToggleBtn.addEventListener('click', () => {
+      isDrawingMode = !isDrawingMode;
+      controls.enabled = !isDrawingMode;
+      drawCanvas.style.pointerEvents = isDrawingMode ? 'auto' : 'none';
+      updateToggleBtn();
+    });
+    updateToggleBtn();
+    drawCanvas.style.pointerEvents = 'none'; // Start with drawing OFF
 
     let ribbonMesh = null;
     let ribbonTexture = null;
+    let lastRibbonBuildPoints = [];
+    let lastRibbonBuildWidth = 1;
 
     function screenToWorld(x, y) {
       const ndc = new THREE.Vector2(
@@ -128,8 +154,13 @@
       return point;
     }
 
-    function buildRibbonFromPoints(points, width = 1) {
+    // --- Ribbon builder with animated undulation ---
+    function buildRibbonFromPoints(points, width = 1, time = 0) {
       if (points.length < 2) return;
+
+      // Store for animation loop
+      lastRibbonBuildPoints = points.map(p => p.clone());
+      lastRibbonBuildWidth = width;
 
       const curve = new THREE.Curve();
       curve.getPoint = t => {
@@ -153,11 +184,24 @@
       const uvs = [];
       const indices = [];
 
+      // --- Animation params ---
+      const waveAmplitude = 0.2;
+      const waveFrequency = 4;
+      const waveSpeed = 2;
+
       for (let i = 0; i <= segments; i++) {
         const t = i / segments;
         const point = curve.getPoint(t);
         const tangent = curve.getTangent(t).normalize();
-        const normal = new THREE.Vector3(0, 1, 0).cross(tangent).normalize();
+        let normal = new THREE.Vector3(0, 1, 0).cross(tangent).normalize();
+
+        // Animate phase:
+        const phase = Math.sin(
+          t * Math.PI * 2 * waveFrequency + time * waveSpeed
+        ) * waveAmplitude;
+
+        normal.applyAxisAngle(tangent, phase);
+
         const left = point.clone().addScaledVector(normal, -width / 2);
         const right = point.clone().addScaledVector(normal, width / 2);
 
@@ -186,6 +230,13 @@
       scene.add(ribbonMesh);
     }
 
+    function updateAnimatedRibbon(time) {
+      if (lastRibbonBuildPoints.length >= 2) {
+        // Only rebuild mesh if a valid path exists
+        buildRibbonFromPoints(lastRibbonBuildPoints, lastRibbonBuildWidth, time);
+      }
+    }
+
     function resizeCanvas() {
       drawCanvas.width = window.innerWidth;
       drawCanvas.height = window.innerHeight;
@@ -193,18 +244,16 @@
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
     }
-
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
+    // --- Drawing events (active only in draw mode) ---
     const drawPoints = [];
-
     function startDrawing(x, y) {
       drawPoints.length = 0;
       drawPoints.push(screenToWorld(x, y));
       drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
     }
-
     function addDrawing(x, y) {
       drawPoints.push(screenToWorld(x, y));
       drawCtx.lineWidth = 2;
@@ -222,14 +271,12 @@
       }
       drawCtx.stroke();
     }
-
     function endDrawing() {
       if (drawPoints.length >= 2) {
         buildRibbonFromPoints(drawPoints);
+        drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height); // optional: hide guide after drawing
       }
     }
-
-
     drawCanvas.addEventListener('pointerdown', e => {
       if (!isDrawingMode) return;
       startDrawing(e.clientX, e.clientY);
@@ -248,8 +295,7 @@
       endDrawing();
     });
 
-
-
+    // --- Slit-scan logic ---
     const tryResolutions = async () => {
       const baseConstraints = { facingMode: { ideal: "environment" } };
       const resolutions = [
@@ -272,87 +318,67 @@
     };
 
     const startSlitScan = async () => {
+      try {
+        const stream = await tryResolutions();
+        const track = stream.getVideoTracks()[0];
+        const processor = new MediaStreamTrackProcessor({ track });
+        const reader = processor.readable.getReader();
 
-      const stream = await tryResolutions();
-      const track = stream.getVideoTracks()[0];
-      const processor = new MediaStreamTrackProcessor({ track });
-      const reader = processor.readable.getReader();
+        const { value: firstFrame } = await reader.read();
+        const videoWidth = firstFrame.displayWidth;
+        const videoHeight = firstFrame.displayHeight;
 
-      const { value: firstFrame } = await reader.read();
-      const videoWidth = firstFrame.displayWidth;
-      const videoHeight = firstFrame.displayHeight;
+        slitCanvas.width = videoWidth;
+        slitCanvas.height = 512;
+        let row = 0;
 
-      slitCanvas.width = videoWidth;
-      slitCanvas.height = 512;
-      let row = 0;
+        const processFrame = async (frame) => {
+          const bitmap = await createImageBitmap(frame);
+          const tmp = new OffscreenCanvas(videoWidth, videoHeight);
+          const tmpCtx = tmp.getContext('2d');
+          tmpCtx.drawImage(bitmap, 0, 0);
+          const midY = Math.floor(videoHeight / 2);
+          const imageData = tmpCtx.getImageData(0, midY, videoWidth, 1);
+          slitCtx.putImageData(imageData, 0, row);
+          frame.close();
+          row = (row + 1) % slitCanvas.height;
+        };
 
-      const processFrame = async (frame) => {
-        const bitmap = await createImageBitmap(frame);
-        const tmp = new OffscreenCanvas(videoWidth, videoHeight);
-        const tmpCtx = tmp.getContext('2d');
-        tmpCtx.drawImage(bitmap, 0, 0);
-        const midY = Math.floor(videoHeight / 2);
-        const imageData = tmpCtx.getImageData(0, midY, videoWidth, 1);
-        slitCtx.putImageData(imageData, 0, row);
-        frame.close();
-        row = (row + 1) % slitCanvas.height;
-      };
+        await processFrame(firstFrame);
 
-      await processFrame(firstFrame);
+        ribbonTexture = new THREE.CanvasTexture(slitCanvas);
+        ribbonTexture.wrapS = THREE.RepeatWrapping;
+        ribbonTexture.wrapT = THREE.RepeatWrapping;
+        ribbonTexture.minFilter = THREE.LinearFilter;
+        ribbonTexture.center.set(0.5, 0.5);
+        ribbonTexture.rotation = Math.PI;
 
-      ribbonTexture = new THREE.CanvasTexture(slitCanvas);
-      ribbonTexture.wrapS = THREE.RepeatWrapping;
-      ribbonTexture.wrapT = THREE.RepeatWrapping;
-      ribbonTexture.minFilter = THREE.LinearFilter;
-      ribbonTexture.center.set(0.5, 0.5);
-      ribbonTexture.rotation = Math.PI;
+        const animateSlit = async () => {
+          while (true) {
+            const { done, value: frame } = await reader.read();
+            if (done) break;
+            await processFrame(frame);
+            ribbonTexture.needsUpdate = true;
+          }
+        };
 
-      const renderLoop = () => {
-        requestAnimationFrame(renderLoop);
-        controls.update();
-        renderer.render(scene, camera);
-      };
-
-      const animateSlit = async () => {
-        while (true) {
-          const { done, value: frame } = await reader.read();
-          if (done) break;
-          await processFrame(frame);
-          ribbonTexture.needsUpdate = true;
-        }
-      };
-
-      renderLoop();
-      animateSlit();
+        animateSlit();
+      } catch (e) {
+        alert("Could not access camera: " + e);
+        return;
+      }
     };
-
     startSlitScan();
 
-
-
-    const drawToggleBtn = document.getElementById('drawToggleBtn');
-    let isDrawingMode = false;
-
-    function updateToggleBtn() {
-      if (isDrawingMode) {
-        drawToggleBtn.textContent = "Done Drawing";
-        drawToggleBtn.style.background = "#248f24";
-      } else {
-        drawToggleBtn.textContent = "Draw Ribbon";
-        drawToggleBtn.style.background = "#333";
-      }
+    // --- Render Loop with animated ribbon ---
+    function renderLoop() {
+      requestAnimationFrame(renderLoop);
+      const time = performance.now() / 1000;
+      updateAnimatedRibbon(time);
+      controls.update();
+      renderer.render(scene, camera);
     }
-
-    drawToggleBtn.addEventListener('click', () => {
-      isDrawingMode = !isDrawingMode;
-      controls.enabled = !isDrawingMode;
-      drawCanvas.style.pointerEvents = isDrawingMode ? 'auto' : 'none';
-      updateToggleBtn();
-    });
-    updateToggleBtn();
-    drawCanvas.style.pointerEvents = 'none'; // Start with drawing OFF
-
-
+    renderLoop();
 
     // Resource Cleanup
     window.addEventListener('beforeunload', () => {
