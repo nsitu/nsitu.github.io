@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Touch-Drawn Slit-Scan Ribbon</title>
   <style>
-    html, body {
+    html,
+    body {
       margin: 0;
       overflow: hidden;
       touch-action: none;
     }
+
     canvas#slitCanvas {
       display: none;
     }
+
     canvas#drawCanvas {
       position: absolute;
       top: 0;
@@ -29,10 +33,68 @@
   }
   </script>
 </head>
+
 <body>
   <canvas id="slitCanvas"></canvas>
   <canvas id="drawCanvas"></canvas>
   <script type="module">
+
+
+    // polyfill via https://jan-ivar.github.io/polyfills/mediastreamtrackprocessor.js
+    if (!self.MediaStreamTrackProcessor) {
+      console.log("Polyfilling MediaStreamTrackProcessor");
+      self.MediaStreamTrackProcessor = class MediaStreamTrackProcessor {
+        constructor({ track }) {
+          if (track.kind == "video") {
+            this.readable = new ReadableStream({
+              async start(controller) {
+                this.video = document.createElement("video");
+                this.video.srcObject = new MediaStream([track]);
+                await Promise.all([this.video.play(), new Promise(r => this.video.onloadedmetadata = r)]);
+                this.track = track;
+                this.canvas = new OffscreenCanvas(this.video.videoWidth, this.video.videoHeight);
+                this.ctx = this.canvas.getContext('2d', { desynchronized: true });
+                this.t1 = performance.now();
+              },
+              async pull(controller) {
+                while (performance.now() - this.t1 < 1000 / track.getSettings().frameRate) {
+                  await new Promise(r => requestAnimationFrame(r));
+                }
+                this.t1 = performance.now();
+                this.ctx.drawImage(this.video, 0, 0);
+                controller.enqueue(new VideoFrame(this.canvas, { timestamp: this.t1 }));
+              }
+            });
+          }
+        }
+      };
+    }
+
+
+    // polyfill via https://jan-ivar.github.io/polyfills/mediastreamtrackgenerator.js
+
+    if (!window.MediaStreamTrackGenerator) {
+      console.log("Polyfilling MediaStreamTrackGenerator");
+      window.MediaStreamTrackGenerator = class MediaStreamTrackGenerator {
+        constructor({ kind }) {
+          if (kind == "video") {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext('2d', { desynchronized: true });
+            const track = canvas.captureStream().getVideoTracks()[0];
+            track.writable = new WritableStream({
+              write(frame) {
+                canvas.width = frame.displayWidth;
+                canvas.height = frame.displayHeight;
+                ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+                frame.close();
+              }
+            });
+            return track;
+          }
+        }
+      };
+    }
+
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
@@ -195,7 +257,7 @@
               height: { exact: res.height }
             }
           });
-        } catch {}
+        } catch { }
       }
       return navigator.mediaDevices.getUserMedia({ video: baseConstraints });
     };
@@ -257,4 +319,5 @@
     startSlitScan();
   </script>
 </body>
+
 </html>
