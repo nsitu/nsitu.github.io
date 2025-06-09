@@ -89,30 +89,6 @@
       };
     }
 
-
-    const drawToggleBtn = document.getElementById('drawToggleBtn');
-    let isDrawingMode = false;
-
-    function updateToggleBtn() {
-      if (isDrawingMode) {
-        drawToggleBtn.textContent = "Done Drawing";
-        drawToggleBtn.style.background = "#248f24";
-      } else {
-        drawToggleBtn.textContent = "Draw Ribbon";
-        drawToggleBtn.style.background = "#333";
-      }
-    }
-
-    drawToggleBtn.addEventListener('click', () => {
-      isDrawingMode = !isDrawingMode;
-      controls.enabled = !isDrawingMode;
-      drawCanvas.style.pointerEvents = isDrawingMode ? 'auto' : 'none';
-      updateToggleBtn();
-    });
-    updateToggleBtn();
-    drawCanvas.style.pointerEvents = 'none'; // Start with drawing OFF
-
-
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
@@ -120,6 +96,9 @@
     const slitCtx = slitCanvas.getContext('2d');
     const drawCanvas = document.getElementById('drawCanvas');
     const drawCtx = drawCanvas.getContext('2d');
+
+
+
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -130,6 +109,9 @@
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
+
+
+
 
     let ribbonMesh = null;
     let ribbonTexture = null;
@@ -291,66 +273,86 @@
 
     const startSlitScan = async () => {
 
-      try {
-        const stream = await tryResolutions();
-        const track = stream.getVideoTracks()[0];
-        const processor = new MediaStreamTrackProcessor({ track });
-        const reader = processor.readable.getReader();
+      const stream = await tryResolutions();
+      const track = stream.getVideoTracks()[0];
+      const processor = new MediaStreamTrackProcessor({ track });
+      const reader = processor.readable.getReader();
 
-        const { value: firstFrame } = await reader.read();
-        const videoWidth = firstFrame.displayWidth;
-        const videoHeight = firstFrame.displayHeight;
+      const { value: firstFrame } = await reader.read();
+      const videoWidth = firstFrame.displayWidth;
+      const videoHeight = firstFrame.displayHeight;
 
-        slitCanvas.width = videoWidth;
-        slitCanvas.height = 512;
-        let row = 0;
+      slitCanvas.width = videoWidth;
+      slitCanvas.height = 512;
+      let row = 0;
 
-        const processFrame = async (frame) => {
-          const bitmap = await createImageBitmap(frame);
-          const tmp = new OffscreenCanvas(videoWidth, videoHeight);
-          const tmpCtx = tmp.getContext('2d');
-          tmpCtx.drawImage(bitmap, 0, 0);
-          const midY = Math.floor(videoHeight / 2);
-          const imageData = tmpCtx.getImageData(0, midY, videoWidth, 1);
-          slitCtx.putImageData(imageData, 0, row);
-          frame.close();
-          row = (row + 1) % slitCanvas.height;
-        };
+      const processFrame = async (frame) => {
+        const bitmap = await createImageBitmap(frame);
+        const tmp = new OffscreenCanvas(videoWidth, videoHeight);
+        const tmpCtx = tmp.getContext('2d');
+        tmpCtx.drawImage(bitmap, 0, 0);
+        const midY = Math.floor(videoHeight / 2);
+        const imageData = tmpCtx.getImageData(0, midY, videoWidth, 1);
+        slitCtx.putImageData(imageData, 0, row);
+        frame.close();
+        row = (row + 1) % slitCanvas.height;
+      };
 
-        await processFrame(firstFrame);
+      await processFrame(firstFrame);
 
-        ribbonTexture = new THREE.CanvasTexture(slitCanvas);
-        ribbonTexture.wrapS = THREE.RepeatWrapping;
-        ribbonTexture.wrapT = THREE.RepeatWrapping;
-        ribbonTexture.minFilter = THREE.LinearFilter;
-        ribbonTexture.center.set(0.5, 0.5);
-        ribbonTexture.rotation = Math.PI;
+      ribbonTexture = new THREE.CanvasTexture(slitCanvas);
+      ribbonTexture.wrapS = THREE.RepeatWrapping;
+      ribbonTexture.wrapT = THREE.RepeatWrapping;
+      ribbonTexture.minFilter = THREE.LinearFilter;
+      ribbonTexture.center.set(0.5, 0.5);
+      ribbonTexture.rotation = Math.PI;
 
-        const renderLoop = () => {
-          requestAnimationFrame(renderLoop);
-          controls.update();
-          renderer.render(scene, camera);
-        };
+      const renderLoop = () => {
+        requestAnimationFrame(renderLoop);
+        controls.update();
+        renderer.render(scene, camera);
+      };
 
-        const animateSlit = async () => {
-          while (true) {
-            const { done, value: frame } = await reader.read();
-            if (done) break;
-            await processFrame(frame);
-            ribbonTexture.needsUpdate = true;
-          }
-        };
+      const animateSlit = async () => {
+        while (true) {
+          const { done, value: frame } = await reader.read();
+          if (done) break;
+          await processFrame(frame);
+          ribbonTexture.needsUpdate = true;
+        }
+      };
 
-        renderLoop();
-        animateSlit();
-      }
-      catch (e) {
-        alert("Could not access camera: " + e);
-        return;
-      }
+      renderLoop();
+      animateSlit();
     };
 
     startSlitScan();
+
+
+
+    const drawToggleBtn = document.getElementById('drawToggleBtn');
+    let isDrawingMode = false;
+
+    function updateToggleBtn() {
+      if (isDrawingMode) {
+        drawToggleBtn.textContent = "Done Drawing";
+        drawToggleBtn.style.background = "#248f24";
+      } else {
+        drawToggleBtn.textContent = "Draw Ribbon";
+        drawToggleBtn.style.background = "#333";
+      }
+    }
+
+    drawToggleBtn.addEventListener('click', () => {
+      isDrawingMode = !isDrawingMode;
+      controls.enabled = !isDrawingMode;
+      drawCanvas.style.pointerEvents = isDrawingMode ? 'auto' : 'none';
+      updateToggleBtn();
+    });
+    updateToggleBtn();
+    drawCanvas.style.pointerEvents = 'none'; // Start with drawing OFF
+
+
 
     // Resource Cleanup
     window.addEventListener('beforeunload', () => {
