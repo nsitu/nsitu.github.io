@@ -56,7 +56,7 @@
 </head>
 
 <body>
-  <button id="drawToggleBtn">Draw Ribbon</button>
+  <button id="drawToggleBtn">+</button>
   <canvas id="slitCanvas"></canvas>
   <canvas id="drawCanvas"></canvas>
   <script type="module">
@@ -121,10 +121,10 @@
 
     function updateToggleBtn() {
       if (isDrawingMode) {
-        drawToggleBtn.textContent = "Done Drawing";
-        drawToggleBtn.style.background = "#248f24";
+        drawToggleBtn.textContent = "Draw";
+        drawToggleBtn.style.background = "transparent";
       } else {
-        drawToggleBtn.textContent = "Draw Ribbon";
+        drawToggleBtn.textContent = "+";
         drawToggleBtn.style.background = "#333";
       }
     }
@@ -143,17 +143,35 @@
     let lastRibbonBuildPoints = [];
     let lastRibbonBuildWidth = 1;
 
-    function screenToWorld(x, y) {
+    function screenToWorld(x, y, depthFromCamera = 5) {
+      // Normalized Device Coordinates
       const ndc = new THREE.Vector2(
         (x / window.innerWidth) * 2 - 1,
         -(y / window.innerHeight) * 2 + 1
       );
+
+      // Ray from camera through click/tap
       const ray = new THREE.Raycaster();
       ray.setFromCamera(ndc, camera);
+
+      // Find a point depthFromCamera units from camera, along the ray
+      // (So, always in front of camera, no matter where it's pointed)
       const point = new THREE.Vector3();
-      ray.ray.at(5, point); // fixed Z depth
+      point.copy(camera.position).add(ray.ray.direction.multiplyScalar(depthFromCamera));
       return point;
     }
+
+    // function screenToWorld(x, y) {
+    //   const ndc = new THREE.Vector2(
+    //     (x / window.innerWidth) * 2 - 1,
+    //     -(y / window.innerHeight) * 2 + 1
+    //   );
+    //   const ray = new THREE.Raycaster();
+    //   ray.setFromCamera(ndc, camera);
+    //   const point = new THREE.Vector3();
+    //   ray.ray.at(8, point); // fixed Z depth
+    //   return point;
+    // }
 
     function makeInitialW(numPoints = 80, width = 8, height = 5, z = 0) {
       // Create a 'W' using two sine waves, joined in the middle
@@ -212,7 +230,7 @@
 
       // --- Animation params ---
       const waveAmplitude = 0.2;
-      const waveFrequency = 4;
+      const waveFrequency = 2;
       const waveSpeed = 2;
 
 
@@ -226,7 +244,8 @@
         let normal = new THREE.Vector3(0, 1, 0).cross(tangent).normalize();
 
         if (prevNormal) {
-          normal = prevNormal.clone().lerp(normal, 0.4).normalize();
+          // use lower lerp value for smoother transitions
+          normal = prevNormal.clone().lerp(normal, 0.05).normalize();
         }
         prevNormal = normal.clone();
 
@@ -318,12 +337,18 @@
       drawCtx.stroke();
     }
 
-    // Then, in endDrawing():
     function endDrawing() {
       if (drawPoints.length >= 2) {
-        const smoothedPoints = smoothDrawnPoints(drawPoints, 150); // more samples = smoother
+        const smoothedPoints = smoothDrawnPoints(drawPoints, 150);
         buildRibbonFromPoints(smoothedPoints);
         drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+      }
+      // Automatically exit drawing mode
+      if (isDrawingMode) {
+        isDrawingMode = false;
+        controls.enabled = true;
+        drawCanvas.style.pointerEvents = 'none';
+        updateToggleBtn();
       }
     }
 
