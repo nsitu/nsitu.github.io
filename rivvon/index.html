@@ -44,6 +44,18 @@
 <body>
   <canvas id="slitCanvas"></canvas>
   <canvas id="drawCanvas"></canvas>
+
+  <button
+    id="drawToggleBtn"
+    style="
+    position:absolute;top:10px;left:10px;z-index:2;
+    padding:0.7em 1.3em;border-radius:1em;font-size:1.1em;
+    background:#333;color:#fff;border:none;cursor:pointer;opacity:0.9;"
+  >
+    Draw Ribbon
+  </button>
+
+
   <script type="module">
 
 
@@ -78,6 +90,27 @@
     }
 
 
+    const drawToggleBtn = document.getElementById('drawToggleBtn');
+    let isDrawingMode = false;
+
+    function updateToggleBtn() {
+      if (isDrawingMode) {
+        drawToggleBtn.textContent = "Done Drawing";
+        drawToggleBtn.style.background = "#248f24";
+      } else {
+        drawToggleBtn.textContent = "Draw Ribbon";
+        drawToggleBtn.style.background = "#333";
+      }
+    }
+
+    drawToggleBtn.addEventListener('click', () => {
+      isDrawingMode = !isDrawingMode;
+      controls.enabled = !isDrawingMode;
+      drawCanvas.style.pointerEvents = isDrawingMode ? 'auto' : 'none';
+      updateToggleBtn();
+    });
+    updateToggleBtn();
+    drawCanvas.style.pointerEvents = 'none'; // Start with drawing OFF
 
 
     import * as THREE from 'three';
@@ -214,20 +247,25 @@
       }
     }
 
-    // Mouse + Touch Events
+
     drawCanvas.addEventListener('pointerdown', e => {
+      if (!isDrawingMode) return;
       startDrawing(e.clientX, e.clientY);
       drawCanvas.setPointerCapture(e.pointerId);
     });
     drawCanvas.addEventListener('pointermove', e => {
+      if (!isDrawingMode) return;
       if (e.buttons === 1) addDrawing(e.clientX, e.clientY);
     });
     drawCanvas.addEventListener('pointerup', e => {
+      if (!isDrawingMode) return;
       endDrawing();
     });
     drawCanvas.addEventListener('pointercancel', e => {
-      endDrawing()
+      if (!isDrawingMode) return;
+      endDrawing();
     });
+
 
 
     const tryResolutions = async () => {
