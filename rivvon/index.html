@@ -257,7 +257,12 @@
       geometry.setIndex(indices);
       geometry.computeVertexNormals();
 
-      if (ribbonMesh) scene.remove(ribbonMesh);
+      if (ribbonMesh) {
+        // prevent memory leaks by removing old geometry and material
+        if (ribbonMesh.geometry) ribbonMesh.geometry.dispose();
+        if (ribbonMesh.material) ribbonMesh.material.dispose();
+        scene.remove(ribbonMesh);
+      }
       ribbonMesh = new THREE.Mesh(
         geometry,
         new THREE.MeshBasicMaterial({ map: ribbonTexture, side: THREE.DoubleSide })
