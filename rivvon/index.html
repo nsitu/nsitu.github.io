@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Animated Fluttering Slit-Scan Ribbon</title>
+  <title>Rivvon</title>
   <style>
     html,
     body {
@@ -43,6 +43,20 @@
       cursor: pointer;
       opacity: 0.92;
       user-select: none;
+      min-width: 44px;
+      min-height: 44px;
+    }
+
+    @media (pointer: coarse),
+    (max-width: 600px) {
+      #drawToggleBtn {
+        padding: 1.3em 2.1em;
+        font-size: 1.5em;
+        border-radius: 1.8em;
+        min-width: 56px;
+        min-height: 56px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+      }
     }
   </style>
   <script type="importmap">
