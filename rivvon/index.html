@@ -92,6 +92,7 @@
     }
 
     import * as THREE from 'three';
+    import { CatmullRomCurve3 } from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
     // --- Canvas & 3D setup ---
@@ -154,8 +155,30 @@
       return point;
     }
 
+    function makeInitialW(numPoints = 80, width = 8, height = 5, z = 0) {
+      // Create a 'W' using two sine waves, joined in the middle
+      const points = [];
+      for (let i = 0; i < numPoints; i++) {
+        // x goes from -width/2 to width/2
+        const x = (i / (numPoints - 1) - 0.5) * width;
+        // W shape: two valleys, one peak, smooth
+        const phase = (i / (numPoints - 1));
+        // Use two joined sine waves for a W-like curve
+        const y =
+          (Math.sin(phase * Math.PI * 2 * 2) * 0.6 + // Main "W" dips
+            Math.sin(phase * Math.PI * 2) * 0.4) * height * 0.5;
+        points.push(new THREE.Vector3(x, y, z));
+      }
+      return points;
+    }
+
+
     // --- Ribbon builder with animated undulation ---
     function buildRibbonFromPoints(points, width = 1, time = 0) {
+
+
+
+
       if (points.length < 2) return;
 
       // Store for animation loop
@@ -178,7 +201,10 @@
         return p2.clone().sub(p1).normalize();
       };
 
-      const segments = 300;
+
+
+
+      const segments = 600;
       const geometry = new THREE.BufferGeometry();
       const positions = [];
       const uvs = [];
@@ -189,11 +215,20 @@
       const waveFrequency = 4;
       const waveSpeed = 2;
 
+
+      let prevNormal = null;
+
       for (let i = 0; i <= segments; i++) {
         const t = i / segments;
         const point = curve.getPoint(t);
+
         const tangent = curve.getTangent(t).normalize();
         let normal = new THREE.Vector3(0, 1, 0).cross(tangent).normalize();
+
+        if (prevNormal) {
+          normal = prevNormal.clone().lerp(normal, 0.4).normalize();
+        }
+        prevNormal = normal.clone();
 
         // Animate phase:
         const phase = Math.sin(
@@ -229,6 +264,12 @@
       );
       scene.add(ribbonMesh);
     }
+
+    const initialW = makeInitialW();
+    buildRibbonFromPoints(initialW, 1.2);
+    lastRibbonBuildPoints = initialW.map(p => p.clone());
+    lastRibbonBuildWidth = 1.2;
+
 
     function updateAnimatedRibbon(time) {
       if (lastRibbonBuildPoints.length >= 2) {
@@ -271,12 +312,27 @@
       }
       drawCtx.stroke();
     }
+
+    // Then, in endDrawing():
     function endDrawing() {
       if (drawPoints.length >= 2) {
-        buildRibbonFromPoints(drawPoints);
-        drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height); // optional: hide guide after drawing
+        const smoothedPoints = smoothDrawnPoints(drawPoints, 150); // more samples = smoother
+        buildRibbonFromPoints(smoothedPoints);
+        drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
       }
     }
+
+    function smoothDrawnPoints(points, numSamples = 100) {
+      if (points.length < 2) return points;
+      const curve = new CatmullRomCurve3(points, false, 'centripetal');
+      // false = not closed, you can change to true if you want loops
+      const smoothed = [];
+      for (let i = 0; i < numSamples; i++) {
+        smoothed.push(curve.getPoint(i / (numSamples - 1)));
+      }
+      return smoothed;
+    }
+
     drawCanvas.addEventListener('pointerdown', e => {
       if (!isDrawingMode) return;
       startDrawing(e.clientX, e.clientY);
@@ -330,6 +386,17 @@
 
         slitCanvas.width = videoWidth;
         slitCanvas.height = 512;
+
+
+        // --- INITIAL GOLD GRADIENT ---
+        const grad = slitCtx.createLinearGradient(0, 0, 0, slitCanvas.height);
+        grad.addColorStop(0.0, "#ffe8a5");
+        grad.addColorStop(0.4, "#ffd700");
+        grad.addColorStop(0.6, "#c7a942");
+        grad.addColorStop(1.0, "#7a6520");
+        slitCtx.fillStyle = grad;
+        slitCtx.fillRect(0, 0, slitCanvas.width, slitCanvas.height);
+
         let row = 0;
 
         const processFrame = async (frame) => {
