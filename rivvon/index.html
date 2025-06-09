@@ -132,6 +132,7 @@
     // --- UI toggle for drawing mode ---
     const drawToggleBtn = document.getElementById('drawToggleBtn');
     let isDrawingMode = false;
+    let cameraStarted = false;
 
     function updateToggleBtn() {
       if (isDrawingMode) {
@@ -144,6 +145,11 @@
     }
 
     drawToggleBtn.addEventListener('click', () => {
+      if (!cameraStarted) {
+        cameraStarted = true;
+        startSlitScan();
+      }
+
       isDrawingMode = !isDrawingMode;
       controls.enabled = !isDrawingMode;
       drawCanvas.style.pointerEvents = isDrawingMode ? 'auto' : 'none';
@@ -479,7 +485,7 @@
         return;
       }
     };
-    startSlitScan();
+
 
     // --- Render Loop with animated ribbon ---
     function renderLoop() {
