@@ -10,7 +10,14 @@
       margin: 0;
       overflow: hidden;
       touch-action: none;
+
     }
+
+    /* hide scrollbars */
+    body {
+      overscroll-behavior: contain;
+    }
+
 
     canvas#slitCanvas {
       display: none;
@@ -218,6 +225,10 @@
     drawCanvas.addEventListener('pointerup', e => {
       endDrawing();
     });
+    drawCanvas.addEventListener('pointercancel', e => {
+      endDrawing()
+    });
+
 
     const tryResolutions = async () => {
       const baseConstraints = { facingMode: { ideal: "environment" } };
@@ -241,60 +252,74 @@
     };
 
     const startSlitScan = async () => {
-      const stream = await tryResolutions();
-      const track = stream.getVideoTracks()[0];
-      const processor = new MediaStreamTrackProcessor({ track });
-      const reader = processor.readable.getReader();
 
-      const { value: firstFrame } = await reader.read();
-      const videoWidth = firstFrame.displayWidth;
-      const videoHeight = firstFrame.displayHeight;
+      try {
+        const stream = await tryResolutions();
+        const track = stream.getVideoTracks()[0];
+        const processor = new MediaStreamTrackProcessor({ track });
+        const reader = processor.readable.getReader();
 
-      slitCanvas.width = videoWidth;
-      slitCanvas.height = 512;
-      let row = 0;
+        const { value: firstFrame } = await reader.read();
+        const videoWidth = firstFrame.displayWidth;
+        const videoHeight = firstFrame.displayHeight;
 
-      const processFrame = async (frame) => {
-        const bitmap = await createImageBitmap(frame);
-        const tmp = new OffscreenCanvas(videoWidth, videoHeight);
-        const tmpCtx = tmp.getContext('2d');
-        tmpCtx.drawImage(bitmap, 0, 0);
-        const midY = Math.floor(videoHeight / 2);
-        const imageData = tmpCtx.getImageData(0, midY, videoWidth, 1);
-        slitCtx.putImageData(imageData, 0, row);
-        frame.close();
-        row = (row + 1) % slitCanvas.height;
-      };
+        slitCanvas.width = videoWidth;
+        slitCanvas.height = 512;
+        let row = 0;
 
-      await processFrame(firstFrame);
+        const processFrame = async (frame) => {
+          const bitmap = await createImageBitmap(frame);
+          const tmp = new OffscreenCanvas(videoWidth, videoHeight);
+          const tmpCtx = tmp.getContext('2d');
+          tmpCtx.drawImage(bitmap, 0, 0);
+          const midY = Math.floor(videoHeight / 2);
+          const imageData = tmpCtx.getImageData(0, midY, videoWidth, 1);
+          slitCtx.putImageData(imageData, 0, row);
+          frame.close();
+          row = (row + 1) % slitCanvas.height;
+        };
 
-      ribbonTexture = new THREE.CanvasTexture(slitCanvas);
-      ribbonTexture.wrapS = THREE.RepeatWrapping;
-      ribbonTexture.wrapT = THREE.RepeatWrapping;
-      ribbonTexture.minFilter = THREE.LinearFilter;
-      ribbonTexture.center.set(0.5, 0.5);
-      ribbonTexture.rotation = Math.PI;
+        await processFrame(firstFrame);
 
-      const renderLoop = () => {
-        requestAnimationFrame(renderLoop);
-        controls.update();
-        renderer.render(scene, camera);
-      };
+        ribbonTexture = new THREE.CanvasTexture(slitCanvas);
+        ribbonTexture.wrapS = THREE.RepeatWrapping;
+        ribbonTexture.wrapT = THREE.RepeatWrapping;
+        ribbonTexture.minFilter = THREE.LinearFilter;
+        ribbonTexture.center.set(0.5, 0.5);
+        ribbonTexture.rotation = Math.PI;
 
-      const animateSlit = async () => {
-        while (true) {
-          const { done, value: frame } = await reader.read();
-          if (done) break;
-          await processFrame(frame);
-          ribbonTexture.needsUpdate = true;
-        }
-      };
+        const renderLoop = () => {
+          requestAnimationFrame(renderLoop);
+          controls.update();
+          renderer.render(scene, camera);
+        };
 
-      renderLoop();
-      animateSlit();
+        const animateSlit = async () => {
+          while (true) {
+            const { done, value: frame } = await reader.read();
+            if (done) break;
+            await processFrame(frame);
+            ribbonTexture.needsUpdate = true;
+          }
+        };
+
+        renderLoop();
+        animateSlit();
+      }
+      catch (e) {
+        alert("Could not access camera: " + e);
+        return;
+      }
     };
 
     startSlitScan();
+
+    // Resource Cleanup
+    window.addEventListener('beforeunload', () => {
+      const tracks = slitCanvas.srcObject?.getTracks?.();
+      if (tracks) tracks.forEach(track => track.stop());
+    });
+
   </script>
 </body>
 
